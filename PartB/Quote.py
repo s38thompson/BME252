@@ -5,12 +5,37 @@ import numpy as np
 import librosa
 
 
+def butter_bandpass(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    return b, a
+
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
+
 # loading data
 sampleRate, data = wavfile.read("252.wav")
+
+# T = data.shape[0]/sampleRate
+# nsamples = data.shape[0]
+# t = np.linspace(0, T, nsamples, endpoint=False)
+# plt.plot(t, data, label='OG Data')
+
 
 # Using Librosa
 data = data.astype(np.float32)
 sample = librosa.resample(data, orig_sr=sampleRate, target_sr=16000)
+
+T2 = sample.shape[0]/16000
+nsamples2 = sample.shape[0]
+t2 = np.linspace(0, T2, nsamples2, endpoint=False)
+# plt.plot(t2, sample, label='Sampled Data')
 
 # # resample to 16KHz
 # new_rate = 16000
@@ -37,40 +62,59 @@ sample = librosa.resample(data, orig_sr=sampleRate, target_sr=16000)
     # chunk_size: number of samples per chunk
     # stride: step size to move to next window
     # returns list of list of overlapping samples
-def TimeSegmentaiton(data, chunk_size, stride):
+def TimeSegmentaiton(data, sampleRate, chunk_size, stride):
 
     chunks = [data[i:i+chunk_size] for i in range(0, len(data) - chunk_size + 1, stride)]
-    return chunks
+    duration = len(data) / sampleRate
+    t = np.linspace(0, duration, int(duration*sampleRate), endpoint=False)
+    t_chunks = [t[i:i+chunk_size] for i in range(0, len(data) - chunk_size + 1, stride)]
+    return chunks, t_chunks
 
-segmented_data = TimeSegmentaiton(sample, 3, 3)
-
+segmented_data, t_chunks = TimeSegmentaiton(sample, 16000, 3, 3)
+# print(t_chunks)
 # bandpass filter parameters
-center_freq = list(range(100, 7200, 500))
-bandwidth = 50
+center_freq = list(range(250, 7200, 500))
+bandwidth = 200
 
 # Process audio
 rms_values = []
-duration = len(sample) / 16000
-t = np.linspace(0, duration, int(duration*16000), endpoint=False)
-audio_signal = np.zeros_like(sample)
-# audio_signal =
+
+print(len(sample))
+audio_signal = np.array([])
+# print(butter_bandpass_filter(segmented_data[0], 25, 75, 16000, 5))
+
+# temp_signal = np.zeros_like(sample)
+# temp_signal += butter_bandpass_filter(sample, 700, 1250, 16000, 6)
+
+# T2 = temp_signal.shape[0]/16000
+# nsamples2 = temp_signal.shape[0]
+# t2 = np.linspace(0, T2, nsamples2, endpoint=False)
+# plt.plot(t2, temp_signal, label='Sampled Data')
+# print(temp_signal.shape)
+# plt.show()
 
 # create array of butterworth filters centered around different frequencies
 # filters = []
-
-for segment in segmented_data:
+# print(segmented_data)
+for segment, t in zip(segmented_data, t_chunks):
     chunk_array = np.zeros_like(segment)
     for freq in center_freq:
         min = freq - bandwidth / 2
         max = freq + bandwidth / 2
         b, a = butter(5, [min, max], btype='band', fs=16000)
-        filtered_chunks = lfilter(b, a, segment)
-        chunk_array += filtered_chunks
-        rms_val = np.sqrt(np.mean(chunk_array**2))
+        filtered_chunk = lfilter(b, a, segment)
+        # print(filtered_chunk)
+        # print("\n")
+        # print(filtered_chunks)
+        rms_val = np.sqrt(np.mean(filtered_chunk**2))
         rms_values.append(rms_val)
         sine = rms_val*np.sin(2*np.pi*freq*t)
-        audio_signal += sine
+        chunk_array += sine
+        # print(sine)
+    audio_signal = np.concatenate((audio_signal, chunk_array))
         # filters.append((b, a))
+
+    
 
 
 
@@ -90,11 +134,18 @@ for segment in segmented_data:
     
 # print("audio signal: " + audio_signal)
 
+# print(type(sample))
+
 # audio_synthesized_int16 = (sample * 32767).astype(np.int16)
+
+# print(sample.shape)
+
+output_audio_signal = np.zeros_like(sample)
+output_audio_signal += audio_signal
 
 output_filename = "sample_audio.wav"
 
-wavfile.write(output_filename, 16000, audio_signal)
+wavfile.write(output_filename, 16000, output_audio_signal)
 
 
 
