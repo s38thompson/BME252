@@ -26,7 +26,7 @@ def audio_plot(data, sampleRate):
     plt.show()
 
 # loading data
-sampleRate, data = wavfile.read("252.wav")
+sampleRate, data = wavfile.read("Input.wav")
 
 # T = data.shape[0]/sampleRate
 # nsamples = data.shape[0]
@@ -76,7 +76,7 @@ def TimeSegmentaiton(data, sampleRate, chunk_size, stride):
     t_chunks = [t[i:i+chunk_size] for i in range(0, len(data) - chunk_size + 1, stride)]
     return chunks, t_chunks
 
-segmented_data, t_chunks = TimeSegmentaiton(sample, 16000, 150, 150)
+segmented_data, t_chunks = TimeSegmentaiton(sample, 16000, 250, 250)
 print(len(segmented_data))
 # print(t_chunks)
 # bandpass filter parameters
@@ -149,7 +149,7 @@ for segment, t in zip(segmented_data, t_chunks):
 
 audio_plot(audio_signal, 16000)
 
-output_filename = "sample_audio.wav"
+output_filename = "Output.wav"
 
 wavfile.write(output_filename, 16000, audio_signal.astype(np.int16))
 
