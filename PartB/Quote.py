@@ -18,6 +18,12 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
     y = lfilter(b, a, data)
     return y
 
+def audio_plot(data, sampleRate):
+    T = data.shape[0]/sampleRate
+    nsamples = data.shape[0]
+    t = np.linspace(0, T, nsamples, endpoint=False)
+    plt.plot(t, data, label='OG Data')
+    plt.show()
 
 # loading data
 sampleRate, data = wavfile.read("252.wav")
@@ -70,11 +76,12 @@ def TimeSegmentaiton(data, sampleRate, chunk_size, stride):
     t_chunks = [t[i:i+chunk_size] for i in range(0, len(data) - chunk_size + 1, stride)]
     return chunks, t_chunks
 
-segmented_data, t_chunks = TimeSegmentaiton(sample, 16000, 3, 3)
+segmented_data, t_chunks = TimeSegmentaiton(sample, 16000, 150, 150)
+print(len(segmented_data))
 # print(t_chunks)
 # bandpass filter parameters
-center_freq = list(range(250, 7200, 500))
-bandwidth = 200
+center_freq = list(range(100, 7200, 50))
+bandwidth = 50
 
 # Process audio
 rms_values = []
@@ -107,7 +114,7 @@ for segment, t in zip(segmented_data, t_chunks):
         # print("\n")
         # print(filtered_chunks)
         rms_val = np.sqrt(np.mean(filtered_chunk**2))
-        rms_values.append(rms_val)
+        # rms_values.append(rms_val)
         sine = rms_val*np.sin(2*np.pi*freq*t)
         chunk_array += sine
         # print(sine)
@@ -140,12 +147,11 @@ for segment, t in zip(segmented_data, t_chunks):
 
 # print(sample.shape)
 
-output_audio_signal = np.zeros_like(sample)
-output_audio_signal += audio_signal
+audio_plot(audio_signal, 16000)
 
 output_filename = "sample_audio.wav"
 
-wavfile.write(output_filename, 16000, output_audio_signal)
+wavfile.write(output_filename, 16000, audio_signal.astype(np.int16))
 
 
 
