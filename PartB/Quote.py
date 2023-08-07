@@ -52,7 +52,7 @@ bandwidth = 50
 rms_values = []
 duration = len(sample) / 16000
 t = np.linspace(0, duration, int(duration*16000), endpoint=False)
-audio_signal = np.zeros_like(sample, dtype=np.float64)
+audio_signal = np.zeros_like(sample)
 # audio_signal =
 
 # create array of butterworth filters centered around different frequencies
