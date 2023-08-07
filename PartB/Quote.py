@@ -6,7 +6,7 @@ import librosa
 
 
 # loading data
-sampleRate, data = wavfile.read("/Users/sydneythompson/Downloads/252.wav")
+sampleRate, data = wavfile.read("252.wav")
 
 # Using Librosa
 data = data.astype(np.float32)
