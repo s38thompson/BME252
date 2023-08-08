@@ -84,7 +84,7 @@ segmented_data, t_chunks = TimeSegmentaiton(sample, 16000, 250, 250)
 
 # bandpass filter parameters
     # filters with center frequencies from 100-7200, jumping by 50 dB each time
-center_freq = list(range(100, 7200, 50))
+center_freq = list(range(100, 7800, 50))
 bandwidth = 50
 
 # --------Processing audio----------- 
