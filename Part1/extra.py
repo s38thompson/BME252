@@ -31,12 +31,6 @@ def bandpass(input):
     output2 = signal.filtfilt(d, c, input) # applying filter
     return output2 # returning filtered data
 
-def rms(input):
-    N = 5 # total time
-    integral = np.trapz(np.square(input), None, 0.05)
-    rms = np.sqrt((1/N)*integral)
-    return rms
-
 # read EMG csv file in
 datasets = pd.read_csv('EMG_Datasets.csv')
 data = pd.DataFrame(datasets) # convert to DataFrame
@@ -55,7 +49,6 @@ dt = 250  # observation
 
 # or using contracted emg dataset
 y = contracted
-# print(rms(y))
 # or using relaxed emg dataset
 # y = relaxed
 
@@ -64,26 +57,11 @@ Y = np.abs(np.fft.fft(y))
 f = np.arange(0, len(Y)) * sampling_rate/len(Y)
 df = int(600 * len(y) / sampling_rate)
 
-# # plotting signals before filtering
-# plt.figure(tight_layout=True)
-# plt.subplot(211)
-# plt.plot(t[:dt], y[:dt])
-# plt.title('Contracted, unfiltered')
-# plt.grid()
-# plt.xlabel('time(s)')
-
-# plt.subplot(212)
-# plt.plot(t[:dt], y[:dt])
-# plt.title('Relaxed, unfiltered')
-# plt.grid()
-# plt.xlabel('time(s)')
-# plt.show()
-
 # fft plot, titles, axes, etc.
 plt.figure(tight_layout=True)
 plt.subplot(211)
 plt.plot(f[:df], Y[:df])
-plt.title('|Unfiltered|')
+plt.title('|Y(f)|')
 plt.grid()
 plt.xlabel('f(Hz)')
 
@@ -100,23 +78,8 @@ df = int(600 * len(filtered) / sampling_rate)
 # fft plot
 plt.subplot(212)
 plt.plot(f[:df], Y[:df])
-plt.title('|Filtered|')
+plt.title('|Y(f) filtered|')
 plt.grid()
 plt.xlabel('f(Hz)')
+
 plt.show()
-
-# plotting signals after filtering
-# plt.figure(tight_layout=True)
-# plt.subplot(211)
-# plt.plot(t[:dt], filtered[:dt])
-# plt.title('Contracted, filtered')
-# plt.grid()
-# plt.xlabel('time(s)')
-
-# plt.subplot(212)
-# plt.plot(t[:dt], filtered[:dt])
-# plt.title('Relaxed, filtered')
-# plt.grid()
-# plt.xlabel('time(s)')
-# print(rms(filtered))
-# plt.show()
